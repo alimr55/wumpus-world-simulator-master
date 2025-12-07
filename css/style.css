@@ -1,0 +1,184 @@
+/* =========================================
+   PROJECT: CYBER-WUMPUS (ULTRA MODE)
+   ========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap');
+
+/* 1. إعدادات الصفحة والخلفية المتحركة */
+body {
+    background-color: #050505;
+    color: #fff;
+    font-family: 'Rajdhani', sans-serif; /* خط مستقبلي */
+    margin-top: 70px;
+    overflow-x: hidden;
+    height: 100vh;
+}
+
+/* الخلفية الشبكية المتحركة (Retro Wave Grid) */
+.cyber-grid {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 200%;
+    background-image: 
+        linear-gradient(rgba(0, 255, 255, 0.3) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 255, 0.3) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: center bottom;
+    transform: perspective(500px) rotateX(60deg);
+    animation: gridMove 20s linear infinite;
+    z-index: -1; /* خلف كل شيء */
+    opacity: 0.2;
+    box-shadow: 0 -100px 100px #000 inset; /* إخفاء الحواف */
+}
+
+@keyframes gridMove {
+    0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+    100% { transform: perspective(500px) rotateX(60deg) translateY(40px); }
+}
+
+/* 2. تحويل الشريط العلوي إلى نيون */
+.navbar {
+    background: rgba(0, 0, 0, 0.7) !important;
+    backdrop-filter: blur(10px); /* تأثير الزجاج */
+    border-bottom: 2px solid #00f3ff;
+    box-shadow: 0 0 15px #00f3ff;
+}
+
+.navbar .navbar-brand {
+    font-family: 'Orbitron', sans-serif; /* خط العناوين */
+    color: #00f3ff !important;
+    font-size: 1.5rem;
+    text-shadow: 0 0 10px #00f3ff;
+    letter-spacing: 2px;
+}
+
+.navbar .nav-link {
+    color: #fff !important;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.navbar .nav-link:hover {
+    color: #ff0055 !important;
+    text-shadow: 0 0 8px #ff0055;
+}
+
+/* 3. حاوية اللعبة (الهولوغرام) */
+.card-game {
+    background: transparent !important;
+    box-shadow: none !important;
+    perspective: 1000px;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 50px;
+}
+
+.card-content {
+    /* الشكل ثلاثي الأبعاد */
+    transform: rotateX(20deg) scale(0.9);
+    transform-style: preserve-3d;
+    
+    /* تصميم الإطار المتوهج */
+    background: rgba(10, 10, 10, 0.8);
+    border: 2px solid #00f3ff;
+    border-radius: 10px;
+    
+    /* الظل النيون الضخم */
+    box-shadow: 
+        0 0 20px rgba(0, 243, 255, 0.2),
+        0 0 50px rgba(0, 243, 255, 0.1),
+        inset 0 0 20px rgba(0, 243, 255, 0.1);
+        
+    /* حركة التنفس (Floating) */
+    animation: floating 4s ease-in-out infinite;
+}
+
+@keyframes floating {
+    0% { transform: rotateX(20deg) scale(0.9) translateY(0px); }
+    50% { transform: rotateX(20deg) scale(0.9) translateY(-15px); }
+    100% { transform: rotateX(20deg) scale(0.9) translateY(0px); }
+}
+
+/* شاشة الكانفاس */
+#canvas {
+    filter: contrast(1.2) drop-shadow(0 0 10px rgba(0,0,0,0.5));
+    border-radius: 8px;
+}
+
+/* 4. القائمة الجانبية (Glassmorphism) */
+.col-lg-3 .card {
+    background: rgba(255, 255, 255, 0.05); /* شفافية */
+    backdrop-filter: blur(15px); /* تمويه الخلفية */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 15px;
+}
+
+.col-lg-3 .card-header {
+    background: rgba(0, 243, 255, 0.1);
+    border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+}
+
+/* الأرقام والبيانات */
+#score { color: #ff0055; font-family: 'Orbitron'; text-shadow: 0 0 5px #ff0055; font-size: 1.4rem;}
+#arrow { color: #00f3ff; font-family: 'Orbitron'; text-shadow: 0 0 5px #00f3ff; font-size: 1.2rem;}
+#gold  { color: #ffd700; font-family: 'Orbitron'; text-shadow: 0 0 5px #ffd700; font-size: 1.2rem;}
+
+/* الأزرار النيون */
+.btn {
+    border-radius: 0; /* حواف حادة سايبربانك */
+    font-family: 'Orbitron';
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+    transition: 0.3s;
+}
+
+.btn-success {
+    background: transparent;
+    border: 2px solid #00f3ff;
+    color: #00f3ff;
+    box-shadow: 0 0 10px #00f3ff inset;
+}
+
+.btn-success:hover {
+    background: #00f3ff;
+    color: #000;
+    box-shadow: 0 0 20px #00f3ff;
+}
+
+.btn-primary {
+    background: transparent;
+    border: 2px solid #ff0055;
+    color: #ff0055;
+    box-shadow: 0 0 10px #ff0055 inset;
+}
+
+.btn-primary:hover {
+    background: #ff0055;
+    color: #fff;
+    box-shadow: 0 0 20px #ff0055;
+}
+
+/* التبويبات */
+.nav-tabs .nav-link.active {
+    background: rgba(0, 243, 255, 0.2) !important;
+    color: #fff !important;
+    border: 1px solid #00f3ff !important;
+}
+
+.nav-tabs .nav-link {
+    color: #888;
+}
+
+/* إخفاء السكرول بار */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #000; 
+}
+::-webkit-scrollbar-thumb {
+    background: #00f3ff; 
+    border-radius: 4px;
+}
