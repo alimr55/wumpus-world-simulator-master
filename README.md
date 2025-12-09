@@ -32,6 +32,22 @@ The Wumpus World Simulator is available at following languages:
 * fr
 * tr_TR
 
+
+Major Update: Cyberpunk Theme & Dynamic AI
+
+Gameplay:
+- Implemented dynamic Wumpus movement (relocates every 3 steps).
+- Added collision safety checks for monster relocation.
+
+Visuals:
+- Overhauled UI/UX to "Cyberpunk" style (Neon colors, Dark BG).
+- Added 3D depth effects to walls and entities.
+- Implemented atmospheric fog/glow effects.
+
+Fixes:
+- Fixed rendering order (Monsters now render above the fog layer).
+- Refactored main.js to handle array-based coordinates properly.
+
 ## Questions or Suggestions
 
 Feel free to create <a href="https://github.com/thiagodnf/wumpus-world-simulator/issues">issues</a> here as you need
