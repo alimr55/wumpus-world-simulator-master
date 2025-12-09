@@ -13,6 +13,9 @@ var floatTexts = [];
 var glitchEffect = 0; 
 var globalTime = 0;
 
+// >> متغير جديد: عداد الخطوات
+var stepsCounter = 0;
+
 function restart(){
     if (!env){
         env = new Environment(15, 8, 64, 64);
@@ -32,6 +35,9 @@ function restart(){
     floatTexts = [];
     dustParticles = []; 
     globalTime = 0;
+
+    // >> تصفير العداد عند بداية اللعبة
+    stepsCounter = 0;
 
     // غبار الجو
     for(var i=0; i<50; i++) {
@@ -96,18 +102,24 @@ function visitCurrentTile() {
     }
 }
 
-// === خوارزمية الحواس ===
+// === خوارزمية الحواس (تم تحديثها لتقرأ المصفوفات بدلاً من الكائنات) ===
 function checkStench() {
     if (!env || !env.wumpus) return false;
-    var wumpusList = [].concat(env.wumpus);
+    // ملاحظة: في Environment.js الوحش هو مصفوفة [col, row]
+    var wumpusList = env.wumpus; 
     var pRow = Math.round(player.y / env.height);
     var pCol = Math.round(player.x / env.width);
+    
     for (var i = 0; i < wumpusList.length; i++) {
-        var w = wumpusList[i];
+        var w = wumpusList[i]; // w[0] is Col (X), w[1] is Row (Y)
         if(!w) continue;
-        if ((w.i == pRow && Math.abs(w.j - pCol) == 1) || 
-            (w.j == pCol && Math.abs(w.i - pRow) == 1) ||
-            (w.i == pRow && w.j == pCol)) { 
+        
+        var wCol = w[0];
+        var wRow = w[1];
+
+        if ((wRow == pRow && Math.abs(wCol - pCol) == 1) || 
+            (wCol == pCol && Math.abs(wRow - pRow) == 1) ||
+            (wRow == pRow && wCol == pCol)) { 
             return true;
         }
     }
@@ -116,15 +128,20 @@ function checkStench() {
 
 function checkBreeze() {
     if (!env || !env.holes) return false;
-    var holesList = [].concat(env.holes);
+    var holesList = env.holes; // Holes are also arrays [col, row]
     var pRow = Math.round(player.y / env.height);
     var pCol = Math.round(player.x / env.width);
+    
     for (var i = 0; i < holesList.length; i++) {
         var h = holesList[i];
         if(!h) continue;
-        if ((h.i == pRow && Math.abs(h.j - pCol) == 1) || 
-            (h.j == pCol && Math.abs(h.i - pRow) == 1) ||
-            (h.i == pRow && h.j == pCol)) {
+        
+        var hCol = h[0];
+        var hRow = h[1];
+
+        if ((hRow == pRow && Math.abs(hCol - pCol) == 1) || 
+            (hCol == pCol && Math.abs(hRow - pRow) == 1) ||
+            (hRow == pRow && hCol == pCol)) {
             return true;
         }
     }
@@ -139,9 +156,9 @@ function getGoldAngle() {
     var pY = player.y + env.height/2;
 
     for (var i = 0; i < env.golds.length; i++) {
-        var g = env.golds[i];
-        var gX = g.j * env.width + env.width/2;
-        var gY = g.i * env.height + env.height/2;
+        var g = env.golds[i]; // g[0] is Col, g[1] is Row
+        var gX = g[0] * env.width + env.width/2;
+        var gY = g[1] * env.height + env.height/2;
         var dist = Math.sqrt(Math.pow(gX - pX, 2) + Math.pow(gY - pY, 2));
         if (dist < minDist) {
             minDist = dist;
@@ -153,6 +170,8 @@ function getGoldAngle() {
     }
     return null;
 }
+
+// (تم حذف دالة rearrangeWumpus من هنا لأننا نستخدم الدالة الموجودة في env الآن)
 
 function createExplosion(x, y, color) {
     for (var i = 0; i < 30; i++) {
@@ -184,9 +203,29 @@ function update(){
     var oldY = player.y;
     globalTime += 0.05;
 
+    // عند نجاح الحركة
     if (player.update(keys)) {
         player.score -= 10;
         visitCurrentTile(); 
+        
+        // >> زيادة العداد
+        stepsCounter++;
+        console.log("Steps: " + stepsCounter);
+
+        // >> التحقق من الوصول لـ 3 خطوات
+        if (stepsCounter >= 3) {
+            
+            // >> استدعاء الدالة من كائن البيئة مباشرة <<
+            if(env.rearrangeWumpus) {
+                env.rearrangeWumpus(player);
+                createFloatingText("⚠️ SHIFTING!", player.x, player.y, "#ff5555");
+                glitchEffect = 10; 
+            } else {
+                console.error("Environment does not have rearrangeWumpus function!");
+            }
+
+            stepsCounter = 0; // تصفير العداد
+        }
     }
     
     if (player.x !== oldX || player.y !== oldY) {
@@ -223,13 +262,17 @@ function update(){
     if (deadWumpus) {
         player.score += 1000;
         env.removeWumpus(deadWumpus);
-        createExplosion(deadWumpus.j * env.width, deadWumpus.i * env.height, "#ff0000");
+        // deadWumpus هنا هو مصفوفة [col, row]
+        createExplosion(deadWumpus[0] * env.width, deadWumpus[1] * env.height, "#ff0000");
         createFloatingText("ELIMINATED", player.x, player.y, "#ff0000");
     }
 
     var capturedGold = player.capture(keys);
 
     if (capturedGold) {
+        // >> إعادة تصفير العداد عند أخذ الذهب
+        stepsCounter = 0;
+        
         player.score += 1000;
         env.removeGold(capturedGold);
         resources.play("gold");
@@ -331,40 +374,35 @@ function draw(){
         }
     }
 
-    // 🔥🔥🔥 2. رسم الوحوش (النوم vs الغضب) 🔥🔥🔥
-    // نرسمها *فوق* البيئة مباشرة (وقبل الظلام)
+    // رسم الوحوش (تأثيرات إضافية فقط)
+    // تم التعديل ليقرأ المصفوفة [col, row] بدلاً من {j, i}
     if(env.wumpus && isAlive && !isFinished) {
-        var wumpusList = [].concat(env.wumpus);
+        var wumpusList = env.wumpus;
         var pX = player.x + env.width/2;
         var pY = player.y + env.height/2;
 
         for(var i=0; i<wumpusList.length; i++) {
-            var w = wumpusList[i];
+            var w = wumpusList[i]; // w[0]=col, w[1]=row
             if(!w) continue;
             
-            var wx = w.j * env.width + env.width/2;
-            var wy = w.i * env.height + env.height/2;
+            var wx = w[0] * env.width + env.width/2;
+            var wy = w[1] * env.height + env.height/2;
             
-            // حساب المسافة
             var dx = wx - pX;
             var dy = wy - pY;
             var dist = Math.sqrt(dx*dx + dy*dy);
             
-            // هل اللاعب قريب؟ (أقل من 3 مربعات)
             var isAngry = dist < (env.width * 3.5);
 
             ctx.save();
             ctx.translate(wx, wy);
 
             if (isAngry) {
-                // === وضع الغضب (Rage Mode) ===
-                
-                // 1. اهتزاز (Vibration)
                 var shakeX = (Math.random() - 0.5) * 4;
                 var shakeY = (Math.random() - 0.5) * 4;
                 ctx.translate(shakeX, shakeY);
 
-                // 2. هالة حمراء مشعة
+                // هالة حمراء
                 ctx.beginPath();
                 ctx.arc(0, 0, env.width/1.8, 0, Math.PI*2);
                 ctx.fillStyle = "rgba(255, 0, 0, 0.4)";
@@ -372,18 +410,14 @@ function draw(){
                 ctx.shadowBlur = 20;
                 ctx.fill();
 
-                // 3. علامة تعجب
                 ctx.font = "bold 20px Arial";
                 ctx.fillStyle = "#ffffff";
                 ctx.fillText("!!", 10, -25);
 
             } else {
-                // === وضع النوم (Sleep Mode) ===
-                // طفو بسيط
                 var floatY = Math.sin(globalTime * 2) * 5;
                 ctx.translate(0, floatY);
                 
-                // علامة Zzz
                 ctx.font = "bold 14px Arial";
                 ctx.fillStyle = "#aaa";
                 ctx.fillText("Zzz...", 10, -20);
